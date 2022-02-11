@@ -32,14 +32,35 @@ client.connect(err => {
       })
   })
 
+  app.get("/serviceById/:id", (req, res) =>{
+    servicesCollection.find({ _id: ObjectId(req.params.id) })
+      .toArray((err, doc) => {
+        res.send(doc[0])
+        console.log(doc, err);
+      })
+  })
+
   app.delete("/deleteService/:id", (req, res) => {
-    console.log(req.params.id); //{_id:ObjectID`${req.params.id}`}
-    // const uid = req.params.id
     servicesCollection.findOneAndDelete({ _id: ObjectId(req.params.id) })
       .then(result => {
         res.send(result)
         console.log(result);
       })
+  })
+
+  app.patch("/updateService/:id", (req, res) =>{
+    console.log(req.body.serviceName,req.body.serviceDescription,req.body.serviceThumbnail);
+    servicesCollection.findOneAndUpdate({_id: ObjectId(req.params.id)},{
+      $set:{
+        serviceName: req.body.serviceName,
+        serviceDescription: req.body.serviceDescription,
+        serviceThumbnail:req.body.serviceThumbnail
+      }
+    })
+    .then((result) =>{
+      res.send(result)
+      console.log(result, "update success");
+    })
   })
 });
 

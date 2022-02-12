@@ -49,8 +49,9 @@ client.connect(err => {
   })
 
   app.patch("/updateService/:id", (req, res) =>{
+    console.log(req.params);
     console.log(req.body.serviceName,req.body.serviceDescription,req.body.serviceThumbnail);
-    servicesCollection.findOneAndUpdate({_id: ObjectId(req.params.id)},{
+    servicesCollection.findOneAndUpdate({ _id: ObjectId(req.params.id) },{
       $set:{
         serviceName: req.body.serviceName,
         serviceDescription: req.body.serviceDescription,
@@ -65,7 +66,7 @@ client.connect(err => {
 });
 
 app.get('/', (req, res) => {
-  res.send('Hellooooooo World!')
+  res.send('Hellooo World!')
 })
 
 app.listen(port)

@@ -17,11 +17,12 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@digital
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect(err => {
   const servicesCollection = client.db(process.env.DB_NAME).collection("services");
+  const adminsCollection = client.db(process.env.DB_NAME).collection("admins");
 
   app.post("/addService", (req, res) => {
     servicesCollection.insertOne(req.body)
-      .then(res => {
-        console.log(res);
+      .then(result => {
+        res.send(result);
       })
   })
 
@@ -32,7 +33,7 @@ client.connect(err => {
       })
   })
 
-  app.get("/serviceById/:id", (req, res) =>{
+  app.get("/serviceById/:id", (req, res) => {
     servicesCollection.find({ _id: ObjectId(req.params.id) })
       .toArray((err, doc) => {
         res.send(doc[0])
@@ -48,25 +49,46 @@ client.connect(err => {
       })
   })
 
-  app.patch("/updateService/:id", (req, res) =>{
+  app.patch("/updateService/:id", (req, res) => {
     console.log(req.params);
-    console.log(req.body.serviceName,req.body.serviceDescription,req.body.serviceThumbnail);
-    servicesCollection.findOneAndUpdate({ _id: ObjectId(req.params.id) },{
-      $set:{
+    console.log(req.body.serviceName, req.body.serviceDescription, req.body.serviceThumbnail);
+    servicesCollection.findOneAndUpdate({ _id: ObjectId(req.params.id) }, {
+      $set: {
         serviceName: req.body.serviceName,
         serviceDescription: req.body.serviceDescription,
-        serviceThumbnail:req.body.serviceThumbnail
+        serviceThumbnail: req.body.serviceThumbnail
       }
     })
-    .then((result) =>{
-      res.send(result)
-      console.log(result, "update success");
-    })
+      .then((result) => {
+        res.send(result)
+        console.log(result, "update success");
+      })
+  })
+
+  app.post("/addAdmin", (req, res) => {
+    adminsCollection.insertOne(req.body)
+      .then(result => {
+        res.send(result);
+      })
+  })
+
+  app.get("/admins", (req, res) => {
+    adminsCollection.find()
+      .toArray((err, doc) => {
+        res.send(doc)
+      })
+  })
+
+  app.delete("/deleteAdmin/:id", (req, res) => {
+    adminsCollection.findOneAndDelete({ _id: ObjectId(req.params.id) })
+      .then((err, result) => {
+        res.send(result)
+      })
   })
 });
 
 app.get('/', (req, res) => {
-  res.send('Hellooo World!')
+  res.send('Hellooooooo World!')
 })
 
 app.listen(port)

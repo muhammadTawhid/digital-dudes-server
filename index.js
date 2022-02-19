@@ -1,7 +1,7 @@
 
 const express = require('express')
 const { MongoClient, ObjectId } = require('mongodb');
-const stripe = require('stripe')(process.env.STRIPE_SECRET);
+const stripe = require('stripe')("sk_test_51KUf9fENSw6iH46SRaIxsXtJCZlLDtvZGq43s2Wslv1Sb8FdJBXwd8YTWX8NKvtMXMjNsvWqmn6vL5IRro5DK5sE0087QIGvBd");
 const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
@@ -11,8 +11,6 @@ app.use(cors());
 app.use(bodyParser.json());
 const port = process.env.PORT || 5000
 
-
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@digitaldudes.mq05e.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -21,6 +19,7 @@ client.connect(err => {
   const adminsCollection = client.db(process.env.DB_NAME).collection("admins");
   const reviewsCollection = client.db(process.env.DB_NAME).collection("reviews");
   const pricingCollection = client.db(process.env.DB_NAME).collection("pricing");
+  const subscriptedUsersCollection = client.db(process.env.DB_NAME).collection("subscriptedUsers");
 
   app.post("/addService", (req, res) => {
     servicesCollection.insertOne(req.body)
@@ -140,15 +139,31 @@ client.connect(err => {
 
   app.post("/create-payment-intent", async(req, res) =>{
     const paymentInfo = req.body.pricingValue;
-    console.log(paymentInfo,process.env.STRIPE_SECRET, "dsjkdkdjjfjfjj");
-    const amount = paymentInfo.price * 100;
-    const paymentIntent = stripe.paymentIntents.create({
-      amount:amount,
+    const amount = paymentInfo * 100;
+    console.log(paymentInfo, "dsjkdkdjjfjfsssdddjj");
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount,
       currency:"usd",
       payment_method_types:["card"]
     })
-    console.log(paymentIntent.client_secret, "dddddddddddddddd")
-    res.json({clientSecret: paymentIntent.client_secret})
+    console.log(paymentIntent.client_secret, "ddddddddadfsadfsdddddddddddd")
+    res.send({clientSecret: paymentIntent.client_secret})
+  })
+
+  app.post("/addSubscriptedUser", (req, res) =>{
+    const paymentDetails = req.body;
+    subscriptedUsersCollection.insertOne(paymentDetails)
+    .then(result =>{
+      res.send(result)
+    })
+  })
+
+  app.get("/subscriptedUser", (req, res) =>{
+    subscriptedUsersCollection.find()
+    .toArray((err, doc) =>{
+      res.send(doc)
+    })
   })
 });
 

@@ -1,6 +1,7 @@
 
 const express = require('express')
 const { MongoClient, ObjectId } = require('mongodb');
+const stripe = require('stripe')(process.env.STRIPE_SECRET);
 const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
@@ -19,6 +20,7 @@ client.connect(err => {
   const servicesCollection = client.db(process.env.DB_NAME).collection("services");
   const adminsCollection = client.db(process.env.DB_NAME).collection("admins");
   const reviewsCollection = client.db(process.env.DB_NAME).collection("reviews");
+  const pricingCollection = client.db(process.env.DB_NAME).collection("pricing");
 
   app.post("/addService", (req, res) => {
     servicesCollection.insertOne(req.body)
@@ -100,10 +102,58 @@ client.connect(err => {
       res.send(doc)
     })
   })
+
+  app.post("/addPricing", (req, res) =>{
+    pricingCollection.insertOne(req.body)
+    .then(result =>{
+      res.send(result)
+    })
+  })
+
+  app.get("/pricing", (req, res) =>{
+    pricingCollection.find()
+    .toArray((err, doc) =>{
+      res.send(doc)
+    })
+  })
+
+  app.get("/pricing/:id", (req, res) =>{
+    pricingCollection.find({_id: ObjectId(req.params.id)})
+    .toArray((err, doc) =>{
+      res.send(doc[0])
+    })
+  })
+
+  app.patch("/updatePricing/:id", (req, res) =>{
+    console.log(req.body);
+    pricingCollection.findOneAndUpdate({_id: ObjectId(req.params.id)}, {
+      $set: {
+        pricingTitle: req.body.pricingTitle,
+        pricingValue: req.body.pricingValue,
+        services: req.body.services
+      }
+    })
+    .then(result => {
+      res.send(result)
+    })
+  })
+
+  app.post("/create-payment-intent", async(req, res) =>{
+    const paymentInfo = req.body.pricingValue;
+    console.log(paymentInfo,process.env.STRIPE_SECRET, "dsjkdkdjjfjfjj");
+    const amount = paymentInfo.price * 100;
+    const paymentIntent = stripe.paymentIntents.create({
+      amount:amount,
+      currency:"usd",
+      payment_method_types:["card"]
+    })
+    console.log(paymentIntent.client_secret, "dddddddddddddddd")
+    res.json({clientSecret: paymentIntent.client_secret})
+  })
 });
 
 app.get('/', (req, res) => {
-  res.send('Hellooooooo World!')
+  res.send('Hellooooooooo World!')
 })
 
 app.listen(port)

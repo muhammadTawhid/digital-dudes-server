@@ -129,7 +129,7 @@ client.connect(err => {
       $set: {
         pricingTitle: req.body.pricingTitle,
         pricingValue: req.body.pricingValue,
-        services: req.body.services
+        services: req.body.services,
       }
     })
     .then(result => {
@@ -139,7 +139,7 @@ client.connect(err => {
 
   app.post("/create-payment-intent", async(req, res) =>{
     const paymentInfo = req.body.pricingValue;
-    const amount = paymentInfo * 100;
+    const amount = paymentInfo;
     console.log(paymentInfo, "dsjkdkdjjfjfsssdddjj");
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -159,16 +159,38 @@ client.connect(err => {
     })
   })
 
-  app.get("/subscriptedUser", (req, res) =>{
+  app.get("/subscriptedUser", (req, res) => {
     subscriptedUsersCollection.find()
     .toArray((err, doc) =>{
       res.send(doc)
     })
   })
+
+  app.get("/subscriptedUser/:email", (req, res) => {
+    subscriptedUsersCollection.find({email: req.params.email})
+    .toArray((err, doc) =>{
+      res.send(doc[0])
+    })
+  })
+
+  app.put("/subscriptedUserNewPlan/:id", (req, res) =>{
+    const newSubscriptionDetail = req.body;
+    subscriptedUsersCollection.findOneAndReplace({_id: ObjectId(req.params.id)}, newSubscriptionDetail)
+    .then(result =>{
+      res.send(result)
+    })
+  })
+
+  app.delete("/deleteSubscription/:id", (req, res) => {
+    subscriptedUsersCollection.findOneAndDelete({_id: ObjectId(req.params.id)})
+    .then(result => {
+      res.send(result)
+    })
+  })
 });
 
 app.get('/', (req, res) => {
-  res.send('Hellooooooooo World!')
+  res.send('Hellooooooooooooo World!')
 })
 
 app.listen(port)

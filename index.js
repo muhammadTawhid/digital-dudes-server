@@ -4,8 +4,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const stripe = require('stripe')("sk_test_51KUf9fENSw6iH46SRaIxsXtJCZlLDtvZGq43s2Wslv1Sb8FdJBXwd8YTWX8NKvtMXMjNsvWqmn6vL5IRro5DK5sE0087QIGvBd");
 const admin = require("firebase-admin");
 const { getAuth } = require('firebase-admin/auth');
-// import { getAuth, UserRecord } from 'firebase-admin/auth';
-var serviceAccount = require("./config/digital-dudes-agency-firebase-adminsdk-3vu5v-2c25ae7dab(1).json");
+const serviceAccount = require("./config/digital-dudes-agency-firebase-adminsdk-3vu5v-2c25ae7dab(1).json");
 
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -48,7 +47,6 @@ client.connect(err => {
     servicesCollection.find({ _id: ObjectId(req.params.id) })
       .toArray((err, doc) => {
         res.send(doc[0])
-        console.log(doc, err);
       })
   })
 
@@ -56,13 +54,10 @@ client.connect(err => {
     servicesCollection.findOneAndDelete({ _id: ObjectId(req.params.id) })
       .then(result => {
         res.send(result)
-        console.log(result);
       })
   })
 
   app.patch("/updateService/:id", (req, res) => {
-    console.log(req.params);
-    console.log(req.body.serviceName, req.body.serviceDescription, req.body.serviceThumbnail);
     servicesCollection.findOneAndUpdate({ _id: ObjectId(req.params.id) }, {
       $set: {
         serviceName: req.body.serviceName,
@@ -72,7 +67,6 @@ client.connect(err => {
     })
       .then((result) => {
         res.send(result)
-        console.log(result, "update success");
       })
   })
 
@@ -91,11 +85,9 @@ client.connect(err => {
   })
 
   app.get("/admins/:email", (req, res) => {
-    console.log(req.params.email);
     adminsCollection.find({ adminEmail: req.params.email })
       .toArray((err, doc) => {
         res.send(doc)
-        console.log(doc);
       })
   })
 
@@ -142,7 +134,6 @@ client.connect(err => {
   })
 
   app.patch("/updatePricing/:id", (req, res) => {
-    console.log(req.body);
     pricingCollection.findOneAndUpdate({ _id: ObjectId(req.params.id) }, {
       $set: {
         pricingTitle: req.body.pricingTitle,
@@ -158,14 +149,12 @@ client.connect(err => {
   app.post("/create-payment-intent", async (req, res) => {
     const paymentInfo = req.body.pricingValue;
     const amount = paymentInfo;
-    console.log(paymentInfo, "dsjkdkdjjfjfsssdddjj");
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
       currency: "usd",
       payment_method_types: ["card"]
     })
-    console.log(paymentIntent.client_secret, "ddddddddadfsadfsdddddddddddd")
     res.send({ clientSecret: paymentIntent.client_secret })
   })
 
@@ -198,10 +187,8 @@ client.connect(err => {
         }
       })
       .catch((error) => {
-        // Handle error
+        console.log(error)
       });
-
-
   })
 
   app.put("/subscriptedUserNewPlan/:id", (req, res) => {
@@ -221,7 +208,7 @@ client.connect(err => {
 });
 
 app.get('/', (req, res) => {
-  res.send('Hellooooooooooooo World!')
+  res.send("Hellooooooooooooo World! i'm your dudes")
 })
 
 app.listen(port)
